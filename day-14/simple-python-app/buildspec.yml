@@ -1,6 +1,8 @@
 version: 0.2
 
 env:
+  variables:
+    ImageName: simple-docker-service
   parameter-store:
     DOCKER_REGISTRY_USERNAME: /myapp/docker-credentials/username
     DOCKER_REGISTRY_PASSWORD: /myapp/docker-credentials/password
@@ -18,21 +20,21 @@ phases:
 
   build:
     commands:
-      - echo "Running tests..."
-      - cd day-14/simple-python-app/
-      - echo "Current directory: $(pwd)"
-      - echo "Verifying Dockerfile exists..."
-      - ls -l
-      - echo "Building Docker image..."
+      - echo "🔍 DEBUG: Current directory is:"
+      - pwd
+      - echo "🔍 DEBUG: Listing root contents:"
+      - ls -la
+      - echo "🔍 DEBUG: Entering app folder..."
+      - cd day-14/simple-python-app
+      - echo "🔍 DEBUG: Confirming Dockerfile exists here:"
+      - ls -la
+      - echo "✅ Building Docker image..."
       - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
       - docker build -t "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/simple-python-flask-app:latest" .
-      - docker push "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/simple-python-flask-app:latest"
 
   post_build:
     commands:
-      - echo "Build completed successfully!"
-
-artifacts:
-  files:
-    - '**/*'
-  base-directory: day-14/simple-python-app
+      - echo "✅ Build completed!"
+      - docker tag "$ImageName:latest" 460644413995.dkr.ecr.ap-south-1.amazonaws.com/$ImageName:latest
+      - docker push 460644413995.dkr.ecr.ap-south-1.amazonaws.com/$ImageName:latest
+      - echo "✅ Image pushed!"
