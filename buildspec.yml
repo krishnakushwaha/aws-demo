@@ -17,21 +17,16 @@ phases:
     commands:
       - echo "Installing dependencies..."
       - pip install -r day-14/simple-python-app/requirements.txt
+      - echo "Logging in to Docker..."
+      - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
 
   build:
     commands:
-    - echo "Navigating to app directory..."
-    - cd day-14/simple-python-app
-    - echo "Listing files in current directory:"
-    - ls -l
-    - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
-    - docker build -t "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/$ImageName:latest" .
-    - docker push "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/$ImageName:latest"
+      - echo "Running docker build from correct path..."
+      - docker build -t "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/$ImageName:latest" -f day-14/simple-python-app/Dockerfile day-14/simple-python-app
+      - echo "Pushing Docker image..."
+      - docker push "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/$ImageName:latest"
 
   post_build:
     commands:
       - echo "✅ Build and push completed!"
-
-artifacts:
-  files:
-    - '**/*'
