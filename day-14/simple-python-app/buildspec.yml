@@ -1,32 +1,35 @@
 version: 0.2
 
 env:
-variables:
-  ImageName: simple-python-flask-app
+  variables:
+    ImageName: simple-docker-service
+
   parameter-store:
     DOCKER_REGISTRY_USERNAME: /myapp/docker-credentials/username
     DOCKER_REGISTRY_PASSWORD: /myapp/docker-credentials/password
     DOCKER_REGISTRY_URL: /myapp/docker-registry/url
+
 phases:
   install:
     runtime-versions:
       python: 3.11
+
   pre_build:
     commands:
-      - echo "Installing dependencies..."
-      - pip install -r day-14/simple-python-app/requirements.txt
+      - echo Logging in to Docker Registry...
+      - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
+
   build:
     commands:
-      - echo "Running tests..."
+      - echo Changing to app directory...
       - cd day-14/simple-python-app/
-      - echo "Building Docker image..."
-      - docker build -t $ImageName:latest .
-      - docker tag $ImageName:latest 460644413995.dkr.ecr.ap-south-1.amazonaws.com/$ImageName:latest
-      - docker push "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/simple-python-flask-app:latest"
+      - echo Building Docker image...
+      - docker build -t $ImageName:latest -f Dockerfile .
+
   post_build:
     commands:
-      - echo "Build completed successfully!"
-artifacts:
-  files:
-    - '**/*'
-  base-directory: ../simple-python-app
+      - echo Tagging image for ECR...
+      - docker tag $ImageName:latest 460644413995.dkr.ecr.ap-south-1.amazonaws.com/$ImageName:latest
+      - echo Pushing image to ECR...
+      - docker push 460644413995.dkr.ecr.ap-south-1.amazonaws.com/$ImageName:latest
+      - echo Build completed successfully
