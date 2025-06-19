@@ -1,9 +1,6 @@
 version: 0.2
 
 env:
-  variables:
-    ImageName: simple-docker-service
-
   parameter-store:
     DOCKER_REGISTRY_USERNAME: /myapp/docker-credentials/username
     DOCKER_REGISTRY_PASSWORD: /myapp/docker-credentials/password
@@ -16,22 +13,26 @@ phases:
 
   pre_build:
     commands:
-      - echo Logging in to Docker registry...
-      - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
+      - echo "Installing dependencies..."
+      - pip install -r day-14/simple-python-app/requirements.txt
 
   build:
     commands:
-      - echo Changing to app directory...
-      - cd day-14/simple-python-app
-      - echo Listing files to confirm Dockerfile exists...
+      - echo "Running tests..."
+      - cd day-14/simple-python-app/
+      - echo "Current directory: $(pwd)"
+      - echo "Verifying Dockerfile exists..."
       - ls -l
-      - echo Building Docker image...
-      - docker build -t $ImageName:latest -f Dockerfile .
+      - echo "Building Docker image..."
+      - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
+      - docker build -t "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/simple-python-flask-app:latest" .
+      - docker push "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/simple-python-flask-app:latest"
 
   post_build:
     commands:
-      - echo Tagging Docker image...
-      - docker tag $ImageName:latest 460644413995.dkr.ecr.ap-south-1.amazonaws.com/$ImageName:latest
-      - echo Pushing Docker image...
-      - docker push 460644413995.dkr.ecr.ap-south-1.amazonaws.com/$ImageName:latest
-      - echo DONE
+      - echo "Build completed successfully!"
+
+artifacts:
+  files:
+    - '**/*'
+  base-directory: day-14/simple-python-app
