@@ -23,7 +23,7 @@ phases:
   build:
     commands:
       - echo "Running docker build from correct path..."
-      - docker build -t "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/$ImageName:latest" -f day-14/simple-python-app/Dockerfile day-14/simple-python-app
+      - docker build -t "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/$ImageName:latest" -f simple-python-app/Dockerfile simple-python-app
       - echo "Pushing Docker image..."
       - docker push "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/$ImageName:latest"
 
