@@ -1,1 +1,34 @@
+version: 0.2
+
+env:
+  variables:
+    ImageName: simple-python-flask-app
+  parameter-store:
+    DOCKER_REGISTRY_USERNAME: /myapp/docker-credentials/username
+    DOCKER_REGISTRY_PASSWORD: /myapp/docker-credentials/password
+    DOCKER_REGISTRY_URL: /myapp/docker-registry/url
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+
+  pre_build:
+    commands:
+      - echo "Installing dependencies..."
+      - pip install -r simple-python-app/requirements.txt
+      - echo "Logging in to Docker..."
+      - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
+
+  build:
+    commands:
+      - echo "Running docker build from correct path..."
+      - docker build -t "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/$ImageName:latest" -f simple-python-app/Dockerfile simple-python-app
+
+      - echo "Pushing Docker image..."
+      - docker push "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/$ImageName:latest"
+
+  post_build:
+    commands:
+      - echo "✅ Build and push completed!"
 
